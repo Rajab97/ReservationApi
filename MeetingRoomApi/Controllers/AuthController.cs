@@ -42,7 +42,7 @@ namespace MeetingRoomApi.Controllers
             try
             {
                 if (await _authService.MemberExist(reqisterMemberDto.UserName))
-                    return BadRequest("Username already exist");
+                    return BadRequest("Istifadeci artiq mövcuddurş");
 
 
                 await _authService.Reqister(reqisterMemberDto, Helpers.Roles.User);
