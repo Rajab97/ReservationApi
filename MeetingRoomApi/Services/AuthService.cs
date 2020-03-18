@@ -71,6 +71,19 @@ namespace MeetingRoomApi.Services
 
             Member member = _mapper.Map<Member>(reqisterMemberDto);
             member.Password = reqisterMemberDto.Password.EncryptWithBCrypt();
+
+            if (await _memberRepository.GetAllMembers().FirstOrDefaultAsync(m => m.UserName == member.UserName) != null)
+            {
+                throw new ArgumentException("İstifadəçi adı artıq mövcuddur.");
+            }
+            if (String.IsNullOrEmpty(member.ReservationColorCode))
+            {
+                Regex regex = new Regex(@"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$");
+                if (!regex.IsMatch(member.ReservationColorCode))
+                    throw new ArgumentException("Rəng kodu düzgün daxil edilməmişdir.");
+                member.ReservationColorCode = regex.Match(member.ReservationColorCode).Value;
+            }
+
             member = await _memberRepository.Create(member);
             //role for member
             UserRole userRole = new UserRole()

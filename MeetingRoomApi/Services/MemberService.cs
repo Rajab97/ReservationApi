@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MeetingRoomApi.DAL.EncryptionHelper;
+using MeetingRoomApi.Helpers;
 using MeetingRoomApi.Helpers.EmailService;
 using MeetingRoomApi.Models;
 using MeetingRoomApi.Repositories;
@@ -59,6 +60,12 @@ namespace MeetingRoomApi.Services
         public IQueryable<string> GetValidMembersEmails()
         {
             return GetMembers().Where(m => !String.IsNullOrEmpty(m.Email) && Message.CheckMail(m.Email)).Select(m => m.Email);
+        }
+
+        public async Task<bool> IsAdmin(short userId)
+        {
+            Member member = await _memberRepository.GetMember(userId);
+            return member.UserRoles.FirstOrDefault(m => m.Role.Name == Roles.Administrator) != null;
         }
 
         public async Task<Member> UpdateMember(short id,Member member)

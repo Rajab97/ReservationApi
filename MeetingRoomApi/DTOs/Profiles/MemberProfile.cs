@@ -13,7 +13,7 @@ namespace MeetingRoomApi.DTOs.Profiles
         public MemberProfile()
         {
             CreateMap<LoginMemberDto, Member>().ReverseMap();
-            CreateMap<ReqisterMemberDto, Member>().ForMember(m => m.UserName, opt => opt.MapFrom(source => source.UserName.Trim())).ReverseMap();
+            CreateMap<ReqisterMemberDto, Member>().ForMember(m => m.UserName, opt => opt.MapFrom(source => source.UserName.Trim())).ForMember(m => m.ReservationColorCode, opt => opt.MapFrom(source => source.Color)).ReverseMap();
             CreateMap<MemberDetailsDto, Member>()
                 .ForMember(m => m.ReservationColorCode, opt => opt.MapFrom(source => source.Color))
                 .ReverseMap();

@@ -27,5 +27,8 @@ namespace MeetingRoomApi.DTOs.MemberDtos
         [EmailAddress]
         [MaxLength(25)]
         public string Email { get; set; }
+
+        [MaxLength(7)]
+        public string Color { get; set; }
     }
 }

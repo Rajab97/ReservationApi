@@ -14,6 +14,7 @@ namespace MeetingRoomApi.Services
         IQueryable<string> GetValidMembersEmails();
         Task<Member> UpdateMember(short Id,Member member);
         Task ChangePassword(string lastPassword, string newPassword);
+        Task<bool> IsAdmin(short userId);
    
     }
 }

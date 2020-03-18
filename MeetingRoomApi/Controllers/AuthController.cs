@@ -36,24 +36,7 @@ namespace MeetingRoomApi.Controllers
             _memberService = memberService;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(ReqisterMemberDto reqisterMemberDto)
-        {
-            try
-            {
-                if (await _authService.MemberExist(reqisterMemberDto.UserName))
-                    return BadRequest("Istifadeci artiq mövcuddurş");
-
-
-                await _authService.Reqister(reqisterMemberDto, Helpers.Roles.User);
-                await _authService.CommitAsync();
-            }
-            catch (Exception)
-            {
-                return StatusCode(400);
-            }
-            return StatusCode(201);
-        }
+      
         [HttpPost("login")]
         public async Task<IActionResult> Login(LoginMemberDto loginMemberDto)
         {
@@ -67,7 +50,7 @@ namespace MeetingRoomApi.Controllers
                 new Claim(ClaimTypes.NameIdentifier , member.Id.ToString()),
                 new Claim(ClaimTypes.Name, member.Name +" " + member.Surname),
                 new Claim(ClaimTypes.GivenName, member.UserName),
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, role.Trim())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value));
@@ -85,13 +68,20 @@ namespace MeetingRoomApi.Controllers
 
             return Ok(new {  Token = JWThandler.WriteToken(token) });
         }
-      
-    /*    [HttpPost("changeColor")]
-        public async Task<ActionResult> ChangeColor(ChangeColorDto dto)
+        [HttpGet("isAdmin")]
+        [Authorize]
+        public async Task<IsAdministratorDTO> IsAdministrator()
         {
-            await _authService.ChangeColor(dto.Color);
-            return Ok(new { message = "Changed succesfully" });
-        }*/
-     
+            short userId = Convert.ToInt16(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
+           
+            Member user = await _memberService.GetMember(userId);
+            if (user == null)
+                throw new InvalidOperationException("Icazən yoxdur.");
+            IsAdministratorDTO isAdministratorDTO = new IsAdministratorDTO()
+            {
+                IsAdmin = await _memberService.IsAdmin(userId)
+            };
+            return isAdministratorDTO;
+        }
     }
 }

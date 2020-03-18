@@ -19,13 +19,15 @@ namespace MeetingRoomApi.Controllers
     public class MemberController : ControllerBase
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAuthService _authService;
         private readonly IMemberService _memberService;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContext;
 
-        public MemberController(IHttpContextAccessor httpContextAccessor , IMemberService memberService, IMapper mapper, IHttpContextAccessor httpContext)
+        public MemberController(IHttpContextAccessor httpContextAccessor , IAuthService authService, IMemberService memberService, IMapper mapper, IHttpContextAccessor httpContext)
         {
             _httpContextAccessor = httpContextAccessor;
+            _authService = authService;
             _memberService = memberService;
             _mapper = mapper;
             _httpContext = httpContext;
@@ -35,10 +37,10 @@ namespace MeetingRoomApi.Controllers
         {
             short userId = Convert.ToInt16(_httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier).Value);
             if (Id != userId)
-                return Unauthorized("You don't have access to other member information.");
+                return Unauthorized("Bashqa istifadəçi məlumatlarını görə bilməzsən.");
             Member user = await _memberService.GetMember(userId);
             if (user == null)
-                return Unauthorized("You don't have an access");
+                return Unauthorized("Icazən yoxdur.");
 
             MemberDetailsDto response = _mapper.Map<MemberDetailsDto>(user);
             return Ok(response);
@@ -67,6 +69,24 @@ namespace MeetingRoomApi.Controllers
         {
             await _memberService.ChangePassword(changePasswordDto.LastPassword, changePasswordDto.NewPassword);
             return Ok(new { message = "Changed succesfully" });
+        }
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(ReqisterMemberDto reqisterMemberDto)
+        {
+            try
+            {
+                if (await _authService.MemberExist(reqisterMemberDto.UserName))
+                    return BadRequest("Istifadeci adı artiq mövcuddur.");
+
+
+                await _authService.Reqister(reqisterMemberDto, Helpers.Roles.User);
+                await _authService.CommitAsync();
+            }
+            catch (Exception)
+            {
+                return StatusCode(400);
+            }
+            return StatusCode(201);
         }
     }
 }
